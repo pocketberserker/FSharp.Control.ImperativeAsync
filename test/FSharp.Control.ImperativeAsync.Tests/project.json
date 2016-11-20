@@ -1,0 +1,47 @@
+{
+  "buildOptions": {
+    "emitEntryPoint": true,
+    "debugType": "portable",
+    "compilerName": "fsc",
+    "compile": {
+      "includeFiles": [
+        "./ImperativeAsyncTest.fs",
+        "./UnsafeImperativeAsyncTest.fs"
+      ]
+    }
+  },
+  "dependencies": {
+    "FSharp.Control.ImperativeAsync": {
+      "target": "project"
+    },
+    "Persimmon": "2.0.1-alpha4",
+    "dotnet-test-persimmon": "0.1.0-alpha5"
+  },
+  "testRunner": "persimmon",
+  "tools": {
+    "dotnet-compile-fsc": {
+      "version": "1.0.0-preview2-*",
+      "imports": [
+        "dnxcore50",
+        "portable-net45+win81",
+        "netstandard1.3"
+      ]
+    }
+  },
+  "frameworks": {
+    "net451": {
+      "dependencies": {
+        "FSharp.Core": "4.0.0.1"
+      }
+    },
+    "netcoreapp1.0": {
+      "dependencies": {
+        "Microsoft.NETCore.App": {
+          "version": "1.0.0",
+          "type": "platform"
+        },
+        "FSharp.Core": "4.0.1.7-alpha"
+      }
+    }
+  }
+}
