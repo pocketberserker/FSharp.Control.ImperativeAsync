@@ -14,7 +14,7 @@
       "target": "project"
     },
     "Persimmon": "2.0.1-alpha5",
-    "dotnet-test-persimmon": "0.1.0-alpha6"
+    "dotnet-test-persimmon": "0.1.0-alpha8"
   },
   "testRunner": "persimmon",
   "tools": {
@@ -28,11 +28,6 @@
     }
   },
   "frameworks": {
-    "net451": {
-      "dependencies": {
-        "FSharp.Core": "4.0.0.1"
-      }
-    },
     "netcoreapp1.0": {
       "dependencies": {
         "Microsoft.NETCore.App": {
@@ -40,6 +35,11 @@
           "type": "platform"
         },
         "FSharp.Core": "4.0.1.7-alpha"
+      }
+    },
+    "net451": {
+      "dependencies": {
+        "FSharp.Core": "4.0.0.1"
       }
     }
   }
