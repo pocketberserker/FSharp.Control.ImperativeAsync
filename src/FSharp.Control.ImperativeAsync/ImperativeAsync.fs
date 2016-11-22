@@ -46,36 +46,19 @@ module ImperativeAsync =
     member __.TryFinally(C x, cf) = C <| async.TryFinally(x, cf)
     member __.TryWith(C p, cf) = C <| async.TryWith(p, cf >> unwrap)
     member __.Delay(f) = C <| async.Delay(f >> unwrap)
-    member __.Run(C x) = x
+    member __.Run(C x) = async {
+      let! x = x
+      return
+        match x with
+        | Some x -> x
+        | None -> failwith "Imperative async computation expression must return value."
+    }
 
   [<AutoOpen>]
   module Syntax =
 
     let imperativeAsync = ImperativeAsyncBuilder()
-  
-  module Unsafe =
 
-    type UnsafeImperativeAsyncBuilder() =
-      member __.ReturnFrom(x) = imperativeAsync.ReturnFrom(x)
-      member __.Return(x) = imperativeAsync.Return(x)
-      member __.Source(xs: #seq<_>) = imperativeAsync.Source(xs)
-      member __.Source(x: ImperativeAsync<_>) = imperativeAsync.Source(x)
-      member __.Source(x: Async<_>) = imperativeAsync.Source(x)
-      member __.Zero() = imperativeAsync.Zero()
-      member __.Bind(x, f) = imperativeAsync.Bind(x, f)
-      member __.Using(x: #IDisposable, f) = imperativeAsync.Using(x, f)
-      member __.Combine(x, y) = imperativeAsync.Combine(x, y)
-      member __.While(guard, y) = imperativeAsync.While(guard, y)
-      member __.For(xs: #seq<_>, f) = imperativeAsync.For(xs, f)
-      member __.TryFinally(x, cf) = imperativeAsync.TryFinally(x, cf)
-      member __.TryWith(p, cf) = imperativeAsync.TryWith(p, cf)
-      member __.Delay(f) = imperativeAsync.Delay(f)
-      member __.Run(C x) = async {
-        let! x = x
-        return
-          match x with
-          | Some x -> x
-          | None -> Unchecked.defaultof<'T>
-      }
+module Imperative =
 
-    let imperativeAsync = UnsafeImperativeAsyncBuilder()
+    let async = ImperativeAsync.Syntax.imperativeAsync

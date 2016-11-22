@@ -1,4 +1,4 @@
-﻿module FSharp.Control.Tests.ImperativeAsyncTest
+﻿module FSharp.Control.ImperativeAsync.Tests.ImperativeAsyncTest
 
 open Persimmon
 open UseTestNameByReflection
@@ -13,43 +13,28 @@ let none<'T> : ImperativeAsync<'T> = imperativeAsync.Zero()
 
 let zero = test {
   let res = imperativeAsync { () }
-  do!
-    res |> Async.RunSynchronously
-    |> assertEquals None
+  return! trap { it (res |> Async.RunSynchronously) }
 }
 
 let ret = test {
   let res = imperativeAsync { return 0 }
   do!
     res |> Async.RunSynchronously
-    |> assertEquals (Some 0)
+    |> assertEquals 0
 }
 
 let retret = test {
   let res = imperativeAsync { return 10; return 20; }
   do!
     res |> Async.RunSynchronously
-    |> assertEquals (Some 10)
+    |> assertEquals 10
 }
 
-let ``retFrom Async`` = test {
+let retFrom = test {
   let res = imperativeAsync { return! async.Return(10); return 0 }
   do!
     res |> Async.RunSynchronously
-    |> assertEquals (Some 10)
-}
-
-let ``retFrom ImperativeAsync`` = parameterize {
-  source [
-    (some 10, Some 10)
-    (none, Some 0)
-  ]
-  run (fun (opt, expected) -> test {
-    let res = imperativeAsync { return! opt; return 0 }
-    do!
-      res |> Async.RunSynchronously
-      |> assertEquals expected
-  })
+    |> assertEquals 10
 }
 
 let letBinding = test {
@@ -59,27 +44,7 @@ let letBinding = test {
   }
   do!
     res |> Async.RunSynchronously
-    |> assertEquals (Some "20")
-}
-
-let letBindings = parameterize {
-  source [
-    (some 10, some 5, Some "15", "some 10. some 5")
-    (some 10, none, None, "some 10, none")
-    // FIXME: perameterize test case does not unique name.
-    (none, some 5, None, "none, some 5")
-    (none, none, None, "none, none")
-  ]
-  run (fun (opt1, opt2, expected, _) -> test {
-    let res = imperativeAsync {
-      let! a = opt1
-      let! b = opt2
-      return a + b |> string
-    }
-    do!
-      res |> Async.RunSynchronously
-      |> assertEquals expected
-  })
+    |> assertEquals "20"
 }
 
 // copy from https://github.com/BasisLib/Basis.Core/blob/f48ed463699ae0235aa58623d0f46c754a6f7326/Basis.Core.Tests/TestUtils.fs
@@ -93,10 +58,8 @@ type Disposable<'T>(x: 'T) =
 
 let usingBinding = parameterize {
   source [
-    (none, false, None)
-    (some (new Disposable<ImperativeAsync<int>>(none)), true, None)
-    (some (new Disposable<ImperativeAsync<int>>(some 10)), true, Some "10")
-    (some (new Disposable<ImperativeAsync<int>>(some 20)), true, Some "20")
+    (some (new Disposable<ImperativeAsync<int>>(some 10)), true, "10")
+    (some (new Disposable<ImperativeAsync<int>>(some 20)), true, "20")
   ]
   run (fun (opt, willDisposed, expected) -> test {
     let disposed = ref false
@@ -115,9 +78,8 @@ let usingBinding = parameterize {
 
 let combine = parameterize {
   source [
-    (none, false, None)
-    (some 11, false, Some 11)
-    (some 18, true, Some 36)
+    (some 11, false, 11)
+    (some 18, true, 36)
   ]
   run(fun (opt, willEven, expected) -> test {
     let isEven = ref false
@@ -137,9 +99,8 @@ let combine = parameterize {
 
 let tryWith = parameterize {
   source [
-    ((fun () -> none), None)
-    ((fun () -> some 10), Some 10)
-    ((fun () -> failwith "oops!": ImperativeAsync<int>), Some -1)
+    ((fun () -> some 10), 10)
+    ((fun () -> failwith "oops!": ImperativeAsync<int>), -1)
   ]
   run (fun (f, expected) -> test {
     let res = imperativeAsync {
@@ -157,17 +118,18 @@ let tryWith = parameterize {
 
 let tryFinally = parameterize {
   source [
-    ((fun () -> none), None)
-    ((fun () -> some 10), Some 10)
-    ((fun () -> failwith "oops!": ImperativeAsync<int>),  None)
+    ((fun () -> some 10), 10)
+    ((fun () -> failwith "oops!": ImperativeAsync<int>),  -1)
   ]
   run (fun (f, expected) -> test {
     let final = ref false
     try
       let res = imperativeAsync {
         try
-          let! a = f ()
-          return a
+          try
+            let! a = f ()
+            return a
+          with _ -> return -1
         finally
           final := true
       }
@@ -184,10 +146,9 @@ let tryFinally = parameterize {
 
 let whileLoop = parameterize {
   source [
-    (none, 0, None)
-    (some 1, 5, Some 1)
-    (some 2, 6, Some 2)
-    (some 10, 10, Some -1)
+    (some 1, 5, 1)
+    (some 2, 6, 2)
+    (some 10, 10, -1)
   ]
   run(fun (opt, expectedCounter, expected) -> test {
     let counter = ref 0
@@ -208,9 +169,8 @@ let whileLoop = parameterize {
 
 let forLoop = parameterize {
   source [
-    (none, 0, None)
-    (some 1, 5, Some 1)
-    (some -1, 3, Some 0)
+    (some 1, 5, 1)
+    (some -1, 3, 0)
   ]
   run (fun (opt, expectedCounter, expected) -> test {
     let counter = ref 0

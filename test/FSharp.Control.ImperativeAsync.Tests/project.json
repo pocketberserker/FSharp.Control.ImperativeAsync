@@ -5,8 +5,7 @@
     "compilerName": "fsc",
     "compile": {
       "includeFiles": [
-        "./ImperativeAsyncTest.fs",
-        "./UnsafeImperativeAsyncTest.fs"
+        "./ImperativeAsyncTest.fs"
       ]
     }
   },
@@ -14,8 +13,8 @@
     "FSharp.Control.ImperativeAsync": {
       "target": "project"
     },
-    "Persimmon": "2.0.1-alpha4",
-    "dotnet-test-persimmon": "0.1.0-alpha5"
+    "Persimmon": "2.0.1-alpha5",
+    "dotnet-test-persimmon": "0.1.0-alpha6"
   },
   "testRunner": "persimmon",
   "tools": {
